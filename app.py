@@ -5,27 +5,20 @@ import os
 import re
 from auth import auth_bp, bcrypt
 from help import help_bp
+from db import db
+from dotenv import load_dotenv  # add this
+
+# Load env variables
+load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key'  # Use a strong, random key!
+app.secret_key = os.getenv("SECRET_KEY", "your_secret_key")
 CORS(app, supports_credentials=True)
 bcrypt.init_app(app)
+@app.route("/")
+def home():
+    return "Backend is running successfully 🎉"
 
-# Connect to MongoDB (local)
-client = MongoClient("mongodb://localhost:27017/")
-db = client["pathfinder"]  # Use your database name
-colleges_collection = db["colleges"]  # Use your collection name
-
-def parse_fee(fee_str):
-    """Convert fee string to numeric range"""
-    fee_str_clean = fee_str.replace('₹', '').replace(',', '').replace(' ', '')
-    numbers = [int(num) for num in re.findall(r'\d+', fee_str_clean)]
-    if len(numbers) == 1:
-        return {'min': numbers[0], 'max': numbers[0], 'display': fee_str}
-    elif len(numbers) >= 2:
-        return {'min': min(numbers), 'max': max(numbers), 'display': fee_str}
-    else:
-        return {'min': 0, 'max': 0, 'display': "N/A"}
 
 @app.route('/api/test-mongo', methods=['GET'])
 def test_mongo():

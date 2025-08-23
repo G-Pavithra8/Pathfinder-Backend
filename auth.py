@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify, session
 from flask_bcrypt import Bcrypt
 from pymongo import MongoClient
+from db import db  
 
 auth_bp = Blueprint('auth', __name__)
 bcrypt = Bcrypt()

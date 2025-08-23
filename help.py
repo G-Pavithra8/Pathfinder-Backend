@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify, session
 from datetime import datetime
 from pymongo import MongoClient
+from db import db 
 
 help_bp = Blueprint('help', __name__)
 

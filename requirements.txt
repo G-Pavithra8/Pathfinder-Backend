@@ -1,5 +1,5 @@
 Flask
 flask-cors
 gunicorn
-pymongo
+pymongo[srv]
 flask-bcrypt
