@@ -9,8 +9,7 @@ load_dotenv(dotenv_path=env_path)
 MONGO_URI = os.getenv("MONGO_URI")
 MONGO_DB = os.getenv("MONGO_DB", "pathfinder")
 
-# Connect with SSL/TLS support
-client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=10000)
+client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=10000)  # 10s timeout
 db = client[MONGO_DB]
 
 # Test connection
