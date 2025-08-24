@@ -35,60 +35,78 @@ def test_mongo():
             return jsonify({"status": "success", "message": "MongoDB connected, but collection is empty."})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
+def parse_fee(fee_str):
+    try:
+        if not isinstance(fee_str, str):
+            return {"min": 0, "max": 0, "display": "N/A"}
+
+        # Debugging print (optional):
+        print(f"Raw Fee String: {repr(fee_str)}")
+
+        # Remove currency symbols, commas, non-breaking spaces, regular spaces
+        clean = fee_str.replace("₹", "").replace(",", "").replace("\u00A0", "").replace(" ", "")
+        
+        parts = clean.split("-")
+        if len(parts) == 2:
+            min_fee = int(parts[0])
+            max_fee = int(parts[1])
+            return {"min": min_fee, "max": max_fee, "display": fee_str}
+        else:
+            return {"min": 0, "max": 0, "display": "N/A"}
+    except Exception as e:
+        print(f"Fee parse error: {e}")
+        return {"min": 0, "max": 0, "display": "N/A"}
+
+
+
 
 @app.route('/api/colleges', methods=['GET'])
 def get_colleges():
     try:
-        name = request.args.get('name', '').lower()
+        name = request.args.get('name', '').lower().strip()
         fee_range = request.args.get('fee_range')
-        course = request.args.get('course', '').lower()
+        course = request.args.get('course', '').lower().strip()
         max_cutoff = request.args.get('max_cutoff', type=float)
 
         colleges = list(colleges_collection.find())
         filtered = []
 
-        # Debug: print the keys of the first document
         if colleges:
-            print(list(colleges[0].keys()))
+            print("Document keys:", list(colleges[0].keys()))
 
         for college in colleges:
             try:
                 college_name = college.get('College Name', '')
-
-                # Use the correct field names with trailing spaces!
-                fee_str = college.get('Fee Structure ', '')  # <-- Note the space!
-                cutoff_raw = college.get('Cutoff ', '')      # <-- Note the space!
+                fee_str = college.get('Fee Structure', '')  
+                cutoff_raw = college.get('Cutoff', '')  
                 rank = college.get('Rank', "N/A")
 
-                # Parse Fee
-                fee = parse_fee(fee_str) if fee_str else {'min': 0, 'max': 0, 'display': "N/A"}
-
-                # Parse Cutoff
+                # Fee & cutoff parsing
+                fee = parse_fee(fee_str)
                 try:
                     cutoff_val = float(cutoff_raw)
                 except:
                     cutoff_val = None
 
-                # Course list
+                # Courses
                 course_details = college.get('Course Details', '')
                 courses = [c.strip() for c in course_details.split(',') if c.strip()]
 
-                # Apply Filters
+                # Apply filters safely
                 if name and name not in college_name.lower():
                     continue
-                if course and not any(course in c.lower() for c in courses):
+                if course and course != "all courses" and not any(course in c.lower() for c in courses):
                     continue
                 if max_cutoff and cutoff_val and cutoff_val > max_cutoff:
                     continue
-                if fee_range:
+                if fee_range and fee_range != "all":
                     if fee_range == "below_50k" and fee['min'] >= 50000:
                         continue
                     elif fee_range == "50k_to_80k" and (fee['min'] < 50000 or fee['max'] > 80000):
                         continue
                     elif fee_range == "above_80k" and fee['max'] <= 80000:
                         continue
-            
-                # Append final college data
+
                 filtered.append({
                     'name': college_name,
                     'fee': fee['display'],
@@ -106,6 +124,7 @@ def get_colleges():
         print(f"API error: {e}")
         return jsonify({'error': str(e)}), 500
 
+
 @app.route('/api/courses', methods=['GET'])
 def get_courses():
     courses = set()
@@ -118,7 +137,7 @@ def get_courses():
                 courses.add(course)
     return jsonify(sorted(list(courses)))
 
-    
+
 @app.route('/api/colleges', methods=['POST'])
 def add_college():
     try:
