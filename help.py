@@ -7,8 +7,7 @@ help_bp = Blueprint('help', __name__)
 
 # You can import db from your main app if you set it up as a package,
 # or re-create the connection here (safe for small apps)
-client = MongoClient("mongodb://localhost:27017/")
-db = client["pathfinder"]
+
 help_requests = db["help_requests"]
 
 @help_bp.route('/api/help', methods=['POST'])

@@ -2,12 +2,11 @@ from flask import Blueprint, request, jsonify, session
 from flask_bcrypt import Bcrypt
 from pymongo import MongoClient
 from db import db  
+from db import db  
 
 auth_bp = Blueprint('auth', __name__)
 bcrypt = Bcrypt()
 
-client = MongoClient("mongodb://localhost:27017/")
-db = client["pathfinder"]
 users_collection = db["users"]
 
 @auth_bp.route('/api/signup', methods=['POST'])
