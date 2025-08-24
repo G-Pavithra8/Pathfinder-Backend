@@ -8,6 +8,10 @@ from help import help_bp
 from db import db
 from dotenv import load_dotenv  # add this
 
+# Collections
+colleges_collection = db['colleges']
+users_collection = db['users']
+help_requests_collection = db['help_requests']
 # Load env variables
 load_dotenv()
 
