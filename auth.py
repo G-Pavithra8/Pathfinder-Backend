@@ -1,15 +1,14 @@
 from flask import Blueprint, request, jsonify, session
 from flask_bcrypt import Bcrypt
-from pymongo import MongoClient
-from db import db  
 from db import db  
 
-auth_bp = Blueprint('auth', __name__)
+# Add url_prefix so that routes work as expected
+auth_bp = Blueprint('auth', __name__, url_prefix='/api')
 bcrypt = Bcrypt()
 
 users_collection = db["users"]
 
-@auth_bp.route('/api/signup', methods=['POST'])
+@auth_bp.route('/signup', methods=['POST'])
 def signup():
     data = request.json
     email = data.get('email')
@@ -26,7 +25,7 @@ def signup():
     users_collection.insert_one({'email': email, 'password': hashed_pw, 'name': name})
     return jsonify({'message': 'Signup successful'}), 201
 
-@auth_bp.route('/api/login', methods=['POST'])
+@auth_bp.route('/login', methods=['POST'])
 def login():
     data = request.json
     email = data.get('email')
@@ -39,12 +38,12 @@ def login():
     session['user'] = str(user['_id'])
     return jsonify({'message': 'Login successful', 'name': user['name']}), 200
 
-@auth_bp.route('/api/logout', methods=['POST'])
+@auth_bp.route('/logout', methods=['POST'])
 def logout():
     session.pop('user', None)
     return jsonify({'message': 'Logged out'}), 200
 
-@auth_bp.route('/api/check-auth', methods=['GET'])
+@auth_bp.route('/check-auth', methods=['GET'])
 def check_auth():
     if 'user' in session:
         return jsonify({'authenticated': True})

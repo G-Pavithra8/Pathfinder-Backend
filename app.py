@@ -118,6 +118,17 @@ def get_courses():
                 courses.add(course)
     return jsonify(sorted(list(courses)))
 
+    
+@app.route('/api/colleges', methods=['POST'])
+def add_college():
+    try:
+        data = request.get_json()
+        colleges_collection.insert_one(data)
+        return jsonify({"status": "success", "message": "College added successfully!"}), 201
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
 app.register_blueprint(auth_bp)
 app.register_blueprint(help_bp)
 
